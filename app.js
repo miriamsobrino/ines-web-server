@@ -5,13 +5,22 @@ import User from './models/user.js';
 import Article from './models/article.js';
 import cors from 'cors';
 import multer from 'multer';
-import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
-const uploadMiddleware = multer({ dest: 'uploads/' });
+import admin from 'firebase-admin';
+import { v4 as uuidv4 } from 'uuid';
 
 config();
 connectDB();
+const serviceAccount = require('./serviceAccountKey.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: process.env.FIREBASE_BUCKET_NAME,
+});
+
+const bucket = admin.storage().bucket();
+const uploadMiddleware = multer({ storage: multer.memoryStorage() });
+
 const app = express();
 app.use(express.json());
 app.use(
@@ -94,22 +103,43 @@ app.post('/logout', (req, res) => {
     .json({ message: 'Logged out successfully' });
 });
 app.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
-  const originalName = req.file.originalname;
-  const pathFile = req.file.path.replace(/\\/g, '/');
-  const part = originalName.split('.');
-  const ext = part[part.length - 1];
-  const newPath = pathFile + '.' + ext;
-  fs.renameSync(pathFile, newPath);
-
   const { title, summary, content } = req.body;
-  const articleItem = await Article.create({
-    title,
-    summary,
-    content,
-    file: newPath,
-  });
+  const file = req.file;
 
-  res.json(articleItem);
+  if (!file) {
+    return res.status(400).send('No file uploaded');
+  }
+
+  const uniqueFilename = `${uuidv4()}-${file.originalname}`;
+  const fileUpload = bucket.file(uniqueFilename);
+
+  fileUpload.save(
+    file.buffer,
+    {
+      metadata: { contentType: file.mimetype },
+    },
+    async (err) => {
+      if (err) {
+        console.error('Error uploading to Firebase:', err);
+        return res.status(500).send('Error uploading file');
+      }
+
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+      try {
+        const articleItem = await Article.create({
+          title,
+          summary,
+          content,
+          file: publicUrl,
+        });
+
+        res.json(articleItem);
+      } catch (error) {
+        console.error('Error creating article:', error);
+        res.status(500).send('Error creating article');
+      }
+    }
+  );
 });
 
 app.get('/articles', async (req, res) => {
@@ -144,33 +174,58 @@ app.put('/articles/:id', uploadMiddleware.single('file'), async (req, res) => {
   const { title, summary, content } = req.body;
   const updatedData = { title, summary, content };
 
-  let newPath = null;
   if (req.file) {
-    const originalName = req.file.originalname;
-    const pathFile = req.file.path.replace(/\\/g, '/');
-    const part = originalName.split('.');
-    const ext = part[part.length - 1];
-    newPath = pathFile + '.' + ext;
-    fs.renameSync(pathFile, newPath);
-    updatedData.file = newPath;
-  }
+    const uniqueFilename = `${uuidv4()}-${req.file.originalname}`;
+    const fileUpload = bucket.file(uniqueFilename);
 
-  try {
-    const article = await Article.findByIdAndUpdate(id, updatedData, {
-      new: true,
-    });
-    console.log('Updated article:', article);
+    fileUpload.save(
+      req.file.buffer,
+      {
+        metadata: { contentType: req.file.mimetype },
+      },
+      async (err) => {
+        if (err) {
+          console.error('Error uploading to Firebase:', err);
+          return res.status(500).send('Error uploading file');
+        }
 
-    if (!article) {
-      return res.status(404).json({ message: 'Artículo no encontrado' });
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+        updatedData.file = publicUrl;
+
+        try {
+          const article = await Article.findByIdAndUpdate(id, updatedData, {
+            new: true,
+          });
+
+          if (!article) {
+            return res.status(404).json({ message: 'Artículo no encontrado' });
+          }
+
+          res.json(article);
+        } catch (error) {
+          console.error('Error updating article:', error.message);
+          res.status(500).send('Error updating article');
+        }
+      }
+    );
+  } else {
+    try {
+      const article = await Article.findByIdAndUpdate(id, updatedData, {
+        new: true,
+      });
+
+      if (!article) {
+        return res.status(404).json({ message: 'Artículo no encontrado' });
+      }
+
+      res.json(article);
+    } catch (error) {
+      console.error('Error updating article:', error.message);
+      res.status(500).send('Error updating article');
     }
-
-    res.json(newPath);
-  } catch (error) {
-    console.error('Error al obtener el artículo por ID:', error.message);
-    res.status(500).send('Error interno del servidor');
   }
 });
+
 app.delete('/articles/:id', async (req, res) => {
   const { id } = req.params;
 

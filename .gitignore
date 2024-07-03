@@ -8,3 +8,7 @@ npm-debug.log
 # Logs
 logs
 *.log
+
+
+#Firebase
+serviceAccountKey.json
