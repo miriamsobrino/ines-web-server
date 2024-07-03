@@ -8,17 +8,29 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
-import { serviceAccount } from './config/serviceAccount.js';
+import serviceAccount from './config/serviceAccount.js';
 import { v4 as uuidv4 } from 'uuid';
 
 config();
 connectDB();
 
+const privateKey = serviceAccount.private_key;
+
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert({
+    type: serviceAccount.type,
+    project_id: serviceAccount.project_id,
+    private_key_id: serviceAccount.private_key_id,
+    private_key: privateKey,
+    client_email: serviceAccount.client_email,
+    client_id: serviceAccount.client_id,
+    auth_uri: serviceAccount.auth_uri,
+    token_uri: serviceAccount.token_uri,
+    auth_provider_x509_cert_url: serviceAccount.auth_provider_x509_cert_url,
+    client_x509_cert_url: serviceAccount.client_x509_cert_url,
+  }),
   storageBucket: process.env.FIREBASE_BUCKET_NAME,
 });
-
 const bucket = admin.storage().bucket();
 const uploadMiddleware = multer({ storage: multer.memoryStorage() });
 
