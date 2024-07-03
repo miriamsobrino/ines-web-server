@@ -8,11 +8,12 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
+import serviceAccount from './config/serviceAccount.js';
 import { v4 as uuidv4 } from 'uuid';
 
 config();
 connectDB();
-const serviceAccount = require('./serviceAccountKey.json');
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   storageBucket: process.env.FIREBASE_BUCKET_NAME,
