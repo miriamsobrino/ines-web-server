@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 config();
 connectDB();
 
-const privateKey = serviceAccount.private_key;
+const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
   credential: admin.credential.cert({
