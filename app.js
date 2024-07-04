@@ -51,19 +51,6 @@ app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
 
-const saveArticle = async () => {
-  try {
-    const newArticle = new Article({
-      title: 'Como mejorar el seo',
-      content: 'akjshfjkashfjkahdfjkahdkjfh',
-    });
-
-    const savedArticle = await newArticle.save();
-  } catch (err) {
-    console.error('Error al guardar el artículo', err.message);
-  }
-};
-
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -124,9 +111,6 @@ app.post('/articles', async (req, res) => {
         message: 'Falta el archivo o alguno de los campos obligatorios.',
       });
     }
-
-    // Aquí puedes guardar `title`, `summary`, `content` y `fileUrl` en tu base de datos
-    // Por ejemplo, usando MongoDB, puedes crear un nuevo documento así:
     const article = await Article.create({
       title,
       summary,
@@ -168,60 +152,24 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', uploadMiddleware.single('file'), async (req, res) => {
+app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content } = req.body;
-  const updatedData = { title, summary, content };
+  const { title, summary, content, file } = req.body;
+  const updatedData = { title, summary, content, file };
 
-  if (req.file) {
-    const uniqueFilename = `${uuidv4()}-${req.file.originalname}`;
-    const fileUpload = bucket.file(uniqueFilename);
+  try {
+    const article = await Article.findByIdAndUpdate(id, updatedData, {
+      new: true,
+    });
 
-    fileUpload.save(
-      req.file.buffer,
-      {
-        metadata: { contentType: req.file.mimetype },
-      },
-      async (err) => {
-        if (err) {
-          console.error('Error uploading to Firebase:', err);
-          return res.status(500).send('Error uploading file');
-        }
-
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-        updatedData.file = publicUrl;
-
-        try {
-          const article = await Article.findByIdAndUpdate(id, updatedData, {
-            new: true,
-          });
-
-          if (!article) {
-            return res.status(404).json({ message: 'Artículo no encontrado' });
-          }
-
-          res.json(article);
-        } catch (error) {
-          console.error('Error updating article:', error.message);
-          res.status(500).send('Error updating article');
-        }
-      }
-    );
-  } else {
-    try {
-      const article = await Article.findByIdAndUpdate(id, updatedData, {
-        new: true,
-      });
-
-      if (!article) {
-        return res.status(404).json({ message: 'Artículo no encontrado' });
-      }
-
-      res.json(article);
-    } catch (error) {
-      console.error('Error updating article:', error.message);
-      res.status(500).send('Error updating article');
+    if (!article) {
+      return res.status(404).json({ message: 'Artículo no encontrado' });
     }
+
+    res.json(article);
+  } catch (error) {
+    console.error('Error updating article:', error.message);
+    res.status(500).send('Error updating article');
   }
 });
 
