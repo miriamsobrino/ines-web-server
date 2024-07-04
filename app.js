@@ -150,16 +150,12 @@ app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, file } = req.body;
   try {
-    const updatedArticle = await Article.findByIdAndUpdate(
-      id,
-      {
-        title,
-        summary,
-        content,
-        file: file,
-      },
-      { new: true }
-    );
+    const updatedArticle = await Article.findByIdAndUpdate(id, {
+      title,
+      summary,
+      content,
+      file: file,
+    });
 
     if (!updatedArticle) {
       return res.status(404).json({ message: 'Artículo no encontrado' });
