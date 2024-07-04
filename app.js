@@ -4,6 +4,7 @@ import connectDB from './config/db.js';
 import User from './models/user.js';
 import Article from './models/article.js';
 import cors from 'cors';
+import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
@@ -11,7 +12,7 @@ import serviceAccount from './config/serviceAccount.js';
 
 config();
 connectDB();
-
+const upload = multer();
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
@@ -147,17 +148,27 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', async (req, res) => {
+app.put('/articles/:id', upload.single('file'), async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content, file } = req.body;
+  const { title, summary, content } = req.body;
+  const file = req.file;
+  console.log('Received data:', { title, summary, content, file });
+
   try {
+    let fileUrl = null;
+    if (file) {
+      const storageRef = ref(storage, `articles/${file.originalname}`);
+      await uploadBytes(storageRef, file.buffer);
+      fileUrl = await getDownloadURL(storageRef);
+    }
+
     const updatedArticle = await Article.findByIdAndUpdate(
       id,
       {
         title,
         summary,
         content,
-        file,
+        file: fileUrl,
       },
       { new: true }
     );
@@ -166,7 +177,7 @@ app.put('/articles/:id', async (req, res) => {
       return res.status(404).json({ message: 'Artículo no encontrado' });
     }
 
-    res.json(file);
+    res.json(updatedArticle);
   } catch (error) {
     console.error('Error updating article:', error.message);
     res.status(500).send('Error updating article');
