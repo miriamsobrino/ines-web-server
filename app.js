@@ -35,7 +35,6 @@ const bucket = admin.storage().bucket();
 const uploadMiddleware = multer({ storage: multer.memoryStorage() });
 
 const app = express();
-app = initializeApp(firebaseConfig);
 app.use(express.json());
 app.use(
   cors({
