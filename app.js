@@ -114,7 +114,7 @@ app.post('/logout', (req, res) => {
     .clearCookie('token', {
       httpOnly: true,
       secure: false,
-      sameSite: 'strict',
+      sameSite: 'none',
     })
     .json({ message: 'Logged out successfully' });
 });
@@ -124,11 +124,9 @@ app.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
     const file = req.file;
 
     if (!file || !title || !summary || !content) {
-      return res
-        .status(400)
-        .json({
-          message: 'Falta el archivo o alguno de los campos obligatorios.',
-        });
+      return res.status(400).json({
+        message: 'Falta el archivo o alguno de los campos obligatorios.',
+      });
     }
 
     const uniqueFilename = `${uuidv4()}-${file.originalname}`;
