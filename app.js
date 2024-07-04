@@ -119,7 +119,7 @@ app.post('/articles', async (req, res) => {
   try {
     const { title, summary, content, file } = req.body;
 
-    if (!title || !summary || !content || !fileUrl) {
+    if (!title || !summary || !content || !file) {
       return res.status(400).json({
         message: 'Falta el archivo o alguno de los campos obligatorios.',
       });
