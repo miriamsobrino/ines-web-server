@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import connectDB from './config/db.js';
 import User from './models/user.js';
 import Article from './models/article.js';
+import multer from 'multer';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
@@ -41,7 +42,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use('/uploads', express.static('uploads'));
+const upload = multer();
 
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
@@ -148,7 +149,7 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', async (req, res) => {
+app.put('/articles/:id', upload.none(), async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, file } = req.body;
   try {
