@@ -5,6 +5,8 @@ import User from './models/user.js';
 import Article from './models/article.js';
 import cors from 'cors';
 import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
@@ -14,7 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 config();
 connectDB();
 
-const privateKey = serviceAccount.private_key;
+const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -36,6 +38,7 @@ const uploadMiddleware = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 app.use(express.json());
+app.use(fileUpload());
 app.use(
   cors({
     origin: 'http://localhost:5173',
@@ -116,43 +119,45 @@ app.post('/logout', (req, res) => {
     .json({ message: 'Logged out successfully' });
 });
 app.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
-  const { title, summary, content } = req.body;
-  const file = req.file;
+  try {
+    const { title, summary, content } = req.body;
+    const file = req.file;
 
-  if (!file) {
-    return res.status(400).send('No file uploaded');
-  }
-
-  const uniqueFilename = `${uuidv4()}-${file.originalname}`;
-  const fileUpload = bucket.file(uniqueFilename);
-
-  fileUpload.save(
-    file.buffer,
-    {
-      metadata: { contentType: file.mimetype },
-    },
-    async (err) => {
-      if (err) {
-        console.error('Error uploading to Firebase:', err);
-        return res.status(500).send('Error uploading file');
-      }
-
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-      try {
-        const articleItem = await Article.create({
-          title,
-          summary,
-          content,
-          file: publicUrl,
+    if (!file || !title || !summary || !content) {
+      return res
+        .status(400)
+        .json({
+          message: 'Falta el archivo o alguno de los campos obligatorios.',
         });
-
-        res.json(articleItem);
-      } catch (error) {
-        console.error('Error creating article:', error);
-        res.status(500).send('Error creating article');
-      }
     }
-  );
+
+    const uniqueFilename = `${uuidv4()}-${file.originalname}`;
+    const fileUpload = bucket.file(uniqueFilename);
+
+    // Subir archivo a Firebase Storage
+    await fileUpload.save(file.buffer, {
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+
+    // Crear un nuevo artículo en la base de datos
+    const newArticle = new Article({
+      title,
+      summary,
+      content,
+      file: publicUrl, // Guardar la URL pública de la imagen en el artículo
+    });
+
+    const savedArticle = await newArticle.save();
+
+    res.status(201).json(savedArticle);
+  } catch (error) {
+    console.error('Error al crear artículo:', error);
+    res.status(500).json({ message: 'Error al crear artículo.' });
+  }
 });
 
 app.get('/articles', async (req, res) => {
