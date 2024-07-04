@@ -11,7 +11,7 @@ import serviceAccount from './config/serviceAccount.js';
 
 config();
 connectDB();
-
+app.use(express.urlencoded({ extended: true }));
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
@@ -150,12 +150,16 @@ app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, file } = req.body;
   try {
-    const updatedArticle = await Article.findByIdAndUpdate(id, {
-      title,
-      summary,
-      content,
-      file: file,
-    });
+    const updatedArticle = await Article.findByIdAndUpdate(
+      id,
+      {
+        title,
+        summary,
+        content,
+        file: file,
+      },
+      { new: true }
+    );
 
     if (!updatedArticle) {
       return res.status(404).json({ message: 'Artículo no encontrado' });
