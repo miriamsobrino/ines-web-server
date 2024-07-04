@@ -38,7 +38,6 @@ const uploadMiddleware = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 app.use(express.json());
-app.use(fileUpload());
 app.use(
   cors({
     origin: '*',
