@@ -11,7 +11,7 @@ import serviceAccount from './config/serviceAccount.js';
 
 config();
 connectDB();
-app.use(express.urlencoded({ extended: true }));
+
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
@@ -41,7 +41,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-
+app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
