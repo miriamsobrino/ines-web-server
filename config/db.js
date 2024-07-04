@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
-//MONGO_URI='mongodb+srv://test:testdatabase@web-ines.ogi9rcr.mongodb.net/?retryWrites=true&w=majority&appName=web-ines'
+
 config();
 
 const MONGO_URI = process.env.MONGODB_URI;
