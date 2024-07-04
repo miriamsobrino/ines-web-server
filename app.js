@@ -29,7 +29,7 @@ admin.initializeApp({
     auth_provider_x509_cert_url: serviceAccount.auth_provider_x509_cert_url,
     client_x509_cert_url: serviceAccount.client_x509_cert_url,
   }),
-  storageBucket: process.env.FIREBASE_BUCKET_NAME,
+  storageBucket: 'gs://ines-web-f0de7.appspot.com',
 });
 const bucket = admin.storage().bucket();
 const uploadMiddleware = multer({ storage: multer.memoryStorage() });
@@ -115,7 +115,7 @@ app.post('/logout', (req, res) => {
     })
     .json({ message: 'Logged out successfully' });
 });
-app.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
+router.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
   try {
     const { title, summary, content } = req.body;
     const file = req.file;
@@ -139,16 +139,17 @@ app.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
 
     // Crear un nuevo artículo en la base de datos
-    const newArticle = new Article({
+    const newArticle = {
       title,
       summary,
       content,
-      file: publicUrl, // Guardar la URL pública de la imagen en el artículo
-    });
+      fileUrl: publicUrl, // Guardar la URL pública de la imagen en el artículo
+    };
 
-    const savedArticle = await newArticle.save();
+    // Aquí puedes guardar `newArticle` en tu base de datos (por ejemplo, MongoDB)
+    // await Article.create(newArticle);
 
-    res.status(201).json(savedArticle);
+    res.status(201).json(newArticle);
   } catch (error) {
     console.error('Error al crear artículo:', error);
     res.status(500).json({ message: 'Error al crear artículo.' });
