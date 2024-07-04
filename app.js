@@ -14,17 +14,8 @@ import { v4 as uuidv4 } from 'uuid';
 config();
 connectDB();
 
-// const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
-const firebaseConfig = {
-  apiKey: 'AIzaSyCSELZ-9irBiIsogUpmYtfGkcATL42r6Zs',
-  authDomain: 'ines-web-f0de7.firebaseapp.com',
-  projectId: 'ines-web-f0de7',
-  storageBucket: 'ines-web-f0de7.appspot.com',
-  messagingSenderId: '1021252511603',
-  appId: '1:1021252511603:web:8c35758e584c8ff2d10706',
-  measurementId: 'G-B6KGJBP15D',
-};
-/*
+const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
+
 admin.initializeApp({
   credential: admin.credential.cert({
     type: serviceAccount.type,
@@ -39,7 +30,7 @@ admin.initializeApp({
     client_x509_cert_url: serviceAccount.client_x509_cert_url,
   }),
   storageBucket: process.env.FIREBASE_BUCKET_NAME,
-});*/
+});
 const bucket = admin.storage().bucket();
 const uploadMiddleware = multer({ storage: multer.memoryStorage() });
 
