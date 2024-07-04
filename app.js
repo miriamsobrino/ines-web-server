@@ -115,47 +115,32 @@ app.post('/logout', (req, res) => {
     })
     .json({ message: 'Logged out successfully' });
 });
-router.post('/articles', uploadMiddleware.single('file'), async (req, res) => {
+app.post('/articles', async (req, res) => {
   try {
-    const { title, summary, content } = req.body;
-    const file = req.file;
+    const { title, summary, content, file } = req.body;
 
-    if (!file || !title || !summary || !content) {
+    if (!title || !summary || !content || !fileUrl) {
       return res.status(400).json({
         message: 'Falta el archivo o alguno de los campos obligatorios.',
       });
     }
 
-    const uniqueFilename = `${uuidv4()}-${file.originalname}`;
-    const fileUpload = bucket.file(uniqueFilename);
-
-    // Subir archivo a Firebase Storage
-    await fileUpload.save(file.buffer, {
-      metadata: {
-        contentType: file.mimetype,
-      },
-    });
-
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-
-    // Crear un nuevo artículo en la base de datos
-    const newArticle = {
+    // Aquí puedes guardar `title`, `summary`, `content` y `fileUrl` en tu base de datos
+    // Por ejemplo, usando MongoDB, puedes crear un nuevo documento así:
+    const article = await Article.create({
       title,
       summary,
       content,
-      fileUrl: publicUrl, // Guardar la URL pública de la imagen en el artículo
-    };
+      file: file,
+    });
 
-    // Aquí puedes guardar `newArticle` en tu base de datos (por ejemplo, MongoDB)
-    // await Article.create(newArticle);
-
-    res.status(201).json(newArticle);
+    // Respondemos con el artículo creado o cualquier otro mensaje de éxito
+    res.json(article);
   } catch (error) {
     console.error('Error al crear artículo:', error);
     res.status(500).json({ message: 'Error al crear artículo.' });
   }
 });
-
 app.get('/articles', async (req, res) => {
   try {
     const articles = await Article.find().sort({ createdAt: -1 });
