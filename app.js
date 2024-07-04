@@ -4,12 +4,10 @@ import connectDB from './config/db.js';
 import User from './models/user.js';
 import Article from './models/article.js';
 import cors from 'cors';
-import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
 import serviceAccount from './config/serviceAccount.js';
-import { v4 as uuidv4 } from 'uuid';
 
 config();
 connectDB();
@@ -31,8 +29,6 @@ admin.initializeApp({
   }),
   storageBucket: 'gs://ines-web-f0de7.appspot.com',
 });
-const bucket = admin.storage().bucket();
-const uploadMiddleware = multer({ storage: multer.memoryStorage() });
 
 const app = express();
 app.use(express.json());
@@ -155,18 +151,23 @@ app.get('/articles/:id', async (req, res) => {
 app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, file } = req.body;
-  const updatedData = { title, summary, content, file };
-
   try {
-    const article = await Article.findByIdAndUpdate(id, updatedData, {
-      new: true,
-    });
+    const updatedArticle = await Article.findByIdAndUpdate(
+      id,
+      {
+        title,
+        summary,
+        content,
+        file,
+      },
+      { new: true }
+    );
 
-    if (!article) {
+    if (!updatedArticle) {
       return res.status(404).json({ message: 'Artículo no encontrado' });
     }
 
-    res.json(article);
+    res.json(updatedArticle);
   } catch (error) {
     console.error('Error updating article:', error.message);
     res.status(500).send('Error updating article');
