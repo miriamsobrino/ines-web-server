@@ -41,7 +41,6 @@ app.use(
   })
 );
 app.use(cookieParser());
-const upload = multer();
 
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
