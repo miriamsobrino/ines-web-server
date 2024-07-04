@@ -5,6 +5,7 @@ import User from './models/user.js';
 import Article from './models/article.js';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
 import serviceAccount from './config/serviceAccount.js';
@@ -42,6 +43,8 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
@@ -146,9 +149,11 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', async (req, res) => {
+app.put('/articles/:id', upload.single('file'), async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content, file } = req.body;
+  const { title, summary, content } = req.body;
+  const file = req.file;
+
   try {
     const updatedArticle = await Article.findByIdAndUpdate(
       id,
@@ -156,7 +161,7 @@ app.put('/articles/:id', async (req, res) => {
         title,
         summary,
         content,
-        file: file,
+        file: file ? file.buffer : undefined,
       },
       { new: true }
     );
