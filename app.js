@@ -3,7 +3,6 @@ import { config } from 'dotenv';
 import connectDB from './config/db.js';
 import User from './models/user.js';
 import Article from './models/article.js';
-import multer from 'multer';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
@@ -149,7 +148,7 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', upload.none(), async (req, res) => {
+app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, file } = req.body;
   try {
@@ -168,7 +167,7 @@ app.put('/articles/:id', upload.none(), async (req, res) => {
       return res.status(404).json({ message: 'Artículo no encontrado' });
     }
 
-    res.json(updatedArticle);
+    res.json(file);
   } catch (error) {
     console.error('Error updating article:', error.message);
     res.status(500).send('Error updating article');
