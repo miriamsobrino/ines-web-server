@@ -83,8 +83,8 @@ app.post('/login', async (req, res) => {
     res
       .cookie('token', token, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'none',
+        secure: true,
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 60,
       })
       .json({ message: 'Inicio de sesión exitoso' });
@@ -114,7 +114,7 @@ app.post('/logout', (req, res) => {
     .clearCookie('token', {
       httpOnly: true,
       secure: false,
-      sameSite: 'none',
+      sameSite: 'strict',
     })
     .json({ message: 'Logged out successfully' });
 });
