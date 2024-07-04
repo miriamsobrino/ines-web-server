@@ -12,7 +12,8 @@ import serviceAccount from './config/serviceAccount.js';
 
 config();
 connectDB();
-const upload = multer();
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
