@@ -4,7 +4,6 @@ import connectDB from './config/db.js';
 import User from './models/user.js';
 import Article from './models/article.js';
 import cors from 'cors';
-import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
@@ -12,8 +11,7 @@ import serviceAccount from './config/serviceAccount.js';
 
 config();
 connectDB();
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
 admin.initializeApp({
@@ -43,6 +41,7 @@ app.use(
   })
 );
 app.use(cookieParser());
+const upload = multer();
 
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
@@ -115,7 +114,6 @@ app.post('/articles', async (req, res) => {
       file: file,
     });
 
-    // Respondemos con el artículo creado o cualquier otro mensaje de éxito
     res.json(article);
   } catch (error) {
     console.error('Error al crear artículo:', error);
@@ -149,27 +147,17 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', upload.single('file'), async (req, res) => {
+app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content } = req.body;
-  const file = req.file;
-  console.log('Received data:', { title, summary, content, file });
-
+  const { title, summary, content, file } = req.body;
   try {
-    let fileUrl = null;
-    if (file) {
-      const storageRef = ref(storage, `articles/${file.originalname}`);
-      await uploadBytes(storageRef, file.buffer);
-      fileUrl = await getDownloadURL(storageRef);
-    }
-
     const updatedArticle = await Article.findByIdAndUpdate(
       id,
       {
         title,
         summary,
         content,
-        file: fileUrl,
+        file: file,
       },
       { new: true }
     );
