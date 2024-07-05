@@ -43,7 +43,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-const upload = multer();
+//const upload = multer();
 // const storage = multer.memoryStorage();
 //const upload = multer({ storage });
 app.get('/', (req, res) => {
@@ -150,9 +150,9 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', upload.none(), async (req, res) => {
+app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, summary, content } = req.body;
+  const { title, summary, content, file } = req.body;
 
   try {
     const updateData = {
@@ -161,6 +161,9 @@ app.put('/articles/:id', upload.none(), async (req, res) => {
       content,
     };
 
+    if (file) {
+      updateData.file = file; // URL del archivo subido
+    }
     const updatedArticle = await Article.findByIdAndUpdate(id, updateData, {
       new: true,
     });
