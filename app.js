@@ -43,9 +43,9 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-//const upload = multer();
+const upload = multer();
 // const storage = multer.memoryStorage();
-const upload = multer({ storage });
+//const upload = multer({ storage });
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
