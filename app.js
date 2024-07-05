@@ -162,8 +162,9 @@ app.put('/articles/:id', async (req, res) => {
     };
 
     if (file) {
-      updateData.file = file; // URL del archivo subido
+      updateData.file = file;
     }
+
     const updatedArticle = await Article.findByIdAndUpdate(id, updateData, {
       new: true,
     });
