@@ -149,22 +149,20 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', upload.single('file'), async (req, res) => {
+app.put('/articles/:id', async (req, res) => {
   const { id } = req.params;
   const { title, summary, content } = req.body;
-  const file = req.file;
 
   try {
-    const updatedArticle = await Article.findByIdAndUpdate(
-      id,
-      {
-        title,
-        summary,
-        content,
-        file: file ? file.buffer : undefined,
-      },
-      { new: true }
-    );
+    const updateData = {
+      title,
+      summary,
+      content,
+    };
+
+    const updatedArticle = await Article.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedArticle) {
       return res.status(404).json({ message: 'Artículo no encontrado' });
