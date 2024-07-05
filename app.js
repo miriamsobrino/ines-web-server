@@ -45,7 +45,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 //const upload = multer();
 // const storage = multer.memoryStorage();
-//const upload = multer({ storage });
+const upload = multer({ storage });
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
@@ -150,7 +150,7 @@ app.get('/articles/:id', async (req, res) => {
   }
 });
 
-app.put('/articles/:id', async (req, res) => {
+app.put('/articles/:id', upload.none(), async (req, res) => {
   const { id } = req.params;
   const { title, summary, content, file } = req.body;
 
