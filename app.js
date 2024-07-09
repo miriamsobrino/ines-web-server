@@ -44,8 +44,6 @@ app.use(
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 const upload = multer();
-// const storage = multer.memoryStorage();
-//const upload = multer({ storage });
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
@@ -96,8 +94,8 @@ app.post('/logout', (req, res) => {
   res
     .clearCookie('token', {
       httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
     })
     .json({ message: 'Logged out successfully' });
 });
