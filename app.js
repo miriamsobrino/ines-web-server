@@ -66,8 +66,8 @@ app.post('/login', async (req, res) => {
     res
       .cookie('token', token, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'none',
+        secure: true,
+        sameSite: 'strict',
         maxAge: 1000 * 60 * 60,
       })
       .json({ message: 'Inicio de sesión exitoso' });
