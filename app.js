@@ -35,7 +35,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: 'https://ines-sobrino.vercel.app/',
+    origin: 'https://ines-sobrino.vercel.app',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
