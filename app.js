@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import admin from 'firebase-admin';
+import bcrypt from 'bcrypt';
 import serviceAccount from './config/serviceAccount.js';
 
 config();
@@ -44,9 +45,32 @@ app.use(
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 const upload = multer();
+const username = process.env.USERNAME;
+const password = process.env.PASSWORD;
+const salt = bcrypt.genSaltSync(10);
+const secret = process.env.SECRET;
 app.get('/', (req, res) => {
   res.send('¡Hola, mundo!');
 });
+
+const createUser = async () => {
+  try {
+    const existingUser = await User.findOne({ username: username });
+    if (!existingUser) {
+      const newUser = new User({
+        username: username,
+        password: bcrypt.hashSync(password, salt),
+      });
+      await newUser.save();
+      console.log('Usuario creado:', username);
+    } else {
+      console.log('Usuario ya existe:', username);
+    }
+  } catch (error) {
+    console.error('Error al crear usuario:', error.message);
+  }
+};
+createUser();
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -57,7 +81,7 @@ app.post('/login', async (req, res) => {
     if (!user || user.password !== password) {
       return res.status(401).send('Credenciales incorrectas');
     }
-    const token = jwt.sign({ username, id: user._id }, process.env.SECRET, {
+    const token = jwt.sign({ username, id: user._id }, secret, {
       expiresIn: '1h',
     });
 
