@@ -72,6 +72,16 @@ const createUser = async () => {
 };
 createUser();
 
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error.message);
+    res.status(500).send('Error interno del servidor');
+  }
+});
+
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
