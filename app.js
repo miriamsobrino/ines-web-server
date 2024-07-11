@@ -84,29 +84,32 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    console.log('Intentando encontrar usuario:', username);
     const user = await User.findOne({ username });
 
-    if (user) {
-      const passOk = bcrypt.compareSync(password, user.password);
-      if (passOk) {
-        const token = jwt.sign({ username, id: user._id }, secret, {
-          expiresIn: '1h',
-        });
-
-        return res
-          .cookie('token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 1000 * 60 * 60,
-          })
-          .json({ message: 'Inicio de sesión exitoso' });
-      }
-    }
-
-    if (!user || !passOk) {
+    if (!user) {
+      console.log('Usuario no encontrado');
       return res.status(401).send('Credenciales incorrectas');
     }
+
+    const passOk = bcrypt.compareSync(password, user.password);
+    if (!passOk) {
+      console.log('Contraseña incorrecta');
+      return res.status(401).send('Credenciales incorrectas');
+    }
+
+    const token = jwt.sign({ username, id: user._id }, secret, {
+      expiresIn: '1h',
+    });
+
+    return res
+      .cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 1000 * 60 * 60,
+      })
+      .json({ message: 'Inicio de sesión exitoso' });
   } catch (error) {
     console.error('Error al iniciar sesión:', error.message);
     return res.status(500).send('Error interno del servidor');
