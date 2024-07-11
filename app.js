@@ -93,8 +93,11 @@ app.post('/login', async (req, res) => {
     }
 
     const passOk = bcrypt.compareSync(password, user.password);
+    console.log('Contraseña proporcionada:', password);
+    console.log('Contraseña almacenada (hash):', user.password);
     if (!passOk) {
       console.log('Contraseña incorrecta');
+
       return res.status(401).send('Credenciales incorrectas');
     }
 
