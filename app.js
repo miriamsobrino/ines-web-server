@@ -77,22 +77,12 @@ const createUser = async () => {
 connectDB()
   .then(() => {
     console.log('Conexión a la base de datos establecida correctamente.');
-    createUser(); // Llama a la función createUser después de que connectDB se haya resuelto correctamente
+    createUser();
   })
   .catch((error) => {
     console.error('Error durante la inicialización:', error.message);
-    process.exit(1); // Salir con código de error en caso de falla
+    process.exit(1);
   });
-
-app.get('/users', async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error) {
-    console.error('Error al obtener usuarios:', error.message);
-    res.status(500).send('Error interno del servidor');
-  }
-});
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
