@@ -12,10 +12,9 @@ import bcrypt from 'bcrypt';
 import serviceAccount from './config/serviceAccount.js';
 
 config();
-
+connectDB();
 async function init() {
   try {
-    await connectDB(); // Conexión a la base de datos
     await createUser(); // Creación del usuario
     console.log('Inicialización completada');
   } catch (error) {
