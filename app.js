@@ -55,7 +55,7 @@ app.get('/', (req, res) => {
 
 const createUser = async () => {
   try {
-    const userExists = User.find({ username });
+    const userExists = await User.findOne({ username });
     if (!userExists) {
       const newUser = new User({
         username: username,
