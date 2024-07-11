@@ -13,17 +13,6 @@ import serviceAccount from './config/serviceAccount.js';
 
 config();
 connectDB();
-async function init() {
-  try {
-    await createUser(); // Creación del usuario
-    console.log('Inicialización completada');
-  } catch (error) {
-    console.error('Error durante la inicialización:', error.message);
-    process.exit(1); // Salir con código de error en caso de falla
-  }
-}
-
-init();
 
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
@@ -80,7 +69,14 @@ const createUser = async () => {
     console.error('Error al crear usuario:', error.message);
   }
 };
-createUser();
+connectDB()
+  .then(() => {
+    createUser(); // Llama a la función createUser después de que connectDB se haya resuelto correctamente
+  })
+  .catch((error) => {
+    console.error('Error durante la inicialización:', error.message);
+    process.exit(1); // Salir con código de error en caso de falla
+  });
 
 app.get('/users', async (req, res) => {
   try {
