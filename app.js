@@ -12,7 +12,19 @@ import bcrypt from 'bcrypt';
 import serviceAccount from './config/serviceAccount.js';
 
 config();
-connectDB();
+
+async function init() {
+  try {
+    await connectDB(); // Conexión a la base de datos
+    await createUser(); // Creación del usuario
+    console.log('Inicialización completada');
+  } catch (error) {
+    console.error('Error durante la inicialización:', error.message);
+    process.exit(1); // Salir con código de error en caso de falla
+  }
+}
+
+init();
 
 const privateKey = serviceAccount.private_key.replace(/\\n/g, '\n');
 
