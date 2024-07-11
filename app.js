@@ -55,17 +55,11 @@ app.get('/', (req, res) => {
 
 const createUser = async () => {
   try {
-    const existingUser = await User.findOne({ username: username });
-    if (!existingUser) {
-      const newUser = new User({
-        username: username,
-        password: bcrypt.hashSync(password, salt),
-      });
-      await newUser.save();
-      console.log('Usuario creado:', username);
-    } else {
-      console.log('Usuario ya existe:', username);
-    }
+    const newUser = new User({
+      username: username,
+      password: bcrypt.hashSync(password, salt),
+    });
+    await newUser.save();
   } catch (error) {
     console.error('Error al crear usuario:', error.message);
   }
