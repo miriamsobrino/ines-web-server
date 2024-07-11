@@ -63,6 +63,7 @@ const createUser = async () => {
         password: bcrypt.hashSync(newPassword, salt),
       });
       await newUser.save();
+      console.log('Usuario creado');
     }
   } catch (error) {
     console.error('Error al crear usuario:', error.message);
