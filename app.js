@@ -57,6 +57,7 @@ const createUser = async () => {
   try {
     const userExists = await User.findOne({ username });
     if (!userExists) {
+      console.log('El usuario no existe, creando uno nuevo');
       const newUser = new User({
         username: username,
         password: bcrypt.hashSync(password, salt),
