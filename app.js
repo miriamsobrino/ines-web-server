@@ -45,8 +45,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 const upload = multer();
-const username = process.env.USERNAME;
-const password = process.env.PASSWORD;
+const newUsername = process.env.USERNAME;
+const newPassword = process.env.PASSWORD;
 const salt = bcrypt.genSaltSync(10);
 const secret = process.env.SECRET;
 app.get('/', (req, res) => {
@@ -59,8 +59,8 @@ const createUser = async () => {
     if (!userExists) {
       console.log('El usuario no existe, creando uno nuevo');
       const newUser = new User({
-        username: username,
-        password: bcrypt.hashSync(password, salt),
+        username: newUsername,
+        password: bcrypt.hashSync(newPassword, salt),
       });
       await newUser.save();
     }
@@ -85,24 +85,28 @@ app.post('/login', async (req, res) => {
 
   try {
     const user = await User.findOne({ username });
-    const passOk = bcrypt.compareSync(password, user.password);
+
+    if (user) {
+      const passOk = bcrypt.compareSync(password, user.password);
+      if (passOk) {
+        const token = jwt.sign({ username, id: user._id }, secret, {
+          expiresIn: '1h',
+        });
+
+        return res
+          .cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            maxAge: 1000 * 60 * 60,
+          })
+          .json({ message: 'Inicio de sesión exitoso' });
+      }
+    }
 
     if (!user || !passOk) {
       return res.status(401).send('Credenciales incorrectas');
     }
-
-    const token = jwt.sign({ username, id: user._id }, secret, {
-      expiresIn: '1h',
-    });
-
-    return res
-      .cookie('token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 60,
-      })
-      .json({ message: 'Inicio de sesión exitoso' });
   } catch (error) {
     console.error('Error al iniciar sesión:', error.message);
     return res.status(500).send('Error interno del servidor');
