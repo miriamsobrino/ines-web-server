@@ -55,28 +55,27 @@ app.get('/', (req, res) => {
 
 const createUser = async () => {
   try {
-    const userExists = await User.findOne({ username });
-    if (!userExists) {
-      console.log('El usuario no existe, creando uno nuevo');
-      const newUser = new User({
-        username: newUsername,
-        password: bcrypt.hashSync(newPassword, salt),
-      });
-      await newUser.save();
-      console.log('Usuario creado');
+    const existingUser = await User.findOne({ username: newUsername });
+
+    if (existingUser) {
+      console.log('El usuario ya existe en la base de datos.');
+      return;
     }
+
+    console.log('Creando un nuevo usuario...');
+    const hashedPassword = bcrypt.hashSync(newPassword, salt);
+    const newUser = new User({
+      username: newUsername,
+      password: hashedPassword,
+    });
+    await newUser.save();
+    console.log('Usuario creado correctamente:', newUser);
   } catch (error) {
     console.error('Error al crear usuario:', error.message);
   }
 };
-connectDB()
-  .then(() => {
-    createUser(); // Llama a la función createUser después de que connectDB se haya resuelto correctamente
-  })
-  .catch((error) => {
-    console.error('Error durante la inicialización:', error.message);
-    process.exit(1); // Salir con código de error en caso de falla
-  });
+
+createUser();
 
 app.get('/users', async (req, res) => {
   try {
