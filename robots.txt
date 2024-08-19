@@ -1,3 +1,0 @@
-User-agent: *
-Disallow:
-Sitemap: https://ines-sobrino.vercel.app/sitemap.xml
