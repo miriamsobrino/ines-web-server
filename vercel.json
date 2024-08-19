@@ -9,14 +9,6 @@
 
   "routes": [
     {
-      "src": "/robots.txt",
-      "dest": "client/robots.txt"
-    },
-    {
-      "src": "/sitemap.xml",
-      "dest": "client/sitemap.xml"
-    },
-    {
       "src": "/(.*)",
       "dest": "app.js"
     }
